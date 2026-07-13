@@ -46,7 +46,7 @@ def run_cross_validation(X_train_pca, X_test_pca, y_train, y_test,
     # Base model (L2, consistent with best LR)
     lr_model = LogisticRegression(
         penalty='l2', solver='lbfgs', C=1.0,
-        multi_class='auto', max_iter=5000, random_state=42
+        max_iter=5000, random_state=42
     )
 
     f1_scorer = make_scorer(f1_score, average='weighted', zero_division=0)
@@ -136,7 +136,7 @@ def run_cross_validation(X_train_pca, X_test_pca, y_train, y_test,
     fold_acc_data = [r['fold_accs'] for r in all_results]
     colors_box = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12']
 
-    bp = axes[0].boxplot(fold_acc_data, labels=config_names, patch_artist=True, notch=False)
+    bp = axes[0].boxplot(fold_acc_data, label=config_names, patch_artist=True, notch=False)
     for patch, color in zip(bp['boxes'], colors_box):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)

@@ -1,10 +1,10 @@
-FROM python:latest 
+FROM python:3.13-slim
 
 WORKDIR /app 
 
-COPY requirments.txt .
+COPY requirements.txt .
 
-RUN pip install -r requirments.txt 
+RUN pip install -r requirements.txt 
 
 COPY . . 
 
