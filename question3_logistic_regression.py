@@ -79,7 +79,7 @@ def run_logistic_regression(X_train_pca, X_test_pca, y_train, y_test,
         penalty=None,
         solver='lbfgs',
         multi_class='auto',
-        max_iter=5000,
+        max_iter=10000,
         random_state=42
     )
     r_no_reg = _evaluate_model(model_no_reg, X_train_pca, X_test_pca,
@@ -93,7 +93,7 @@ def run_logistic_regression(X_train_pca, X_test_pca, y_train, y_test,
         solver='saga',      # saga supports L1 multiclass
         C=1.0,
         multi_class='auto',
-        max_iter=5000,
+        max_iter=20000,
         random_state=42
     )
     r_l1 = _evaluate_model(model_l1, X_train_pca, X_test_pca,
