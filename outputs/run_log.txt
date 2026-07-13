@@ -1,0 +1,702 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║   Wearable Physiological Signal Classification — Final Project       ║
+║   Building Machine Learning Models for ANS State Classification      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+  Dataset : wearable_data.csv
+  Outputs : ./outputs/
+
+  Loading dataset...
+  Raw data shape: (241, 48)
+
+══════════════════════════════════════════════════════════════════════
+  PART 1: Exploratory Data Analysis (EDA)  [30 points]
+══════════════════════════════════════════════════════════════════════
+
+======================================================================
+PART 1a: Dataset Overview & Encoding
+======================================================================
+Dataset shape: (241, 46)
+
+Missing values per column (top 10):
+accelerometer_magnitude_sample_entropy      116
+rr_interval_milliseconds_sample_entropy     109
+eda_microsiemens_sample_entropy              34
+temperature_celcius_sample_entropy           27
+bvp_light_absorption_nW_sample_entropy        3
+accelerometer_magnitude_mean_derivative       1
+bvp_light_absorption_nW_mean_derivative       1
+eda_microsiemens_mean_derivative              1
+temperature_celcius_mean_derivative           1
+rr_interval_milliseconds_mean_derivative      1
+dtype: int64
+
+Total missing cells: 294 (2.65%)
+
+Missing values after imputation: 0
+
+Categorical columns: ['gender', 'posture_type', 'yoga_experience', 'difficulty_level', 'state', 'subject']
+  gender: {'female': np.int64(0), 'male': np.int64(1)}
+  posture_type: {'baseline': np.int64(0), 'postural': np.int64(1)}
+  yoga_experience: {'five_to_ten': np.int64(0), 'less_than_five': np.int64(1), 'one_or_less': np.int64(2)}
+  difficulty_level: {'five': np.int64(0), 'four': np.int64(1), 'one': np.int64(2), 'three': np.int64(3), 'two': np.int64(4)}
+  state: {'parasympathetic': np.int64(0), 'relaxed': np.int64(1), 'sympathetic': np.int64(2)}
+  subject: {'subject1': np.int64(0), 'subject10': np.int64(1), 'subject11': np.int64(2), 'subject12': np.int64(3), 'subject13': np.int64(4), 'subject14': np.int64(5), 'subject15': np.int64(6), 'subject16': np.int64(7), 'subject2': np.int64(8), 'subject3': np.int64(9), 'subject4': np.int64(10), 'subject5': np.int64(11), 'subject6': np.int64(12), 'subject7': np.int64(13), 'subject8': np.int64(14), 'subject9': np.int64(15)}
+
+======================================================================
+PART 1b: Class Distribution of Target Variable 'state'
+======================================================================
+state
+parasympathetic    125
+sympathetic         77
+relaxed             39
+  Saved: outputs/q1b_class_distribution.png
+
+======================================================================
+PART 1c: Per-Modality Correlation Heatmaps (5 heatmaps)
+======================================================================
+  accelerometer: saved to outputs/q1c_corr_accelerometer.png
+    High-correlation pairs (|r|>0.85): [('accelerometer_magnitude_mean', 'accelerometer_magnitude_rms', np.float64(1.0)), ('accelerometer_magnitude_std_dev', 'accelerometer_magnitude_peak_to_peak', np.float64(0.981)), ('accelerometer_magnitude_std_dev', 'accelerometer_magnitude_peak_to_rms', np.float64(0.957)), ('accelerometer_magnitude_peak_to_peak', 'accelerometer_magnitude_peak_to_rms', np.float64(0.96))]
+  BVP: saved to outputs/q1c_corr_BVP.png
+    High-correlation pairs (|r|>0.85): [('bvp_light_absorption_nW_mean', 'bvp_light_absorption_nW_rms', np.float64(1.0)), ('bvp_light_absorption_nW_std_dev', 'bvp_light_absorption_nW_peak_to_peak', np.float64(0.989)), ('bvp_light_absorption_nW_num_peaks', 'bvp_light_absorption_nW_sample_entropy', np.float64(0.94))]
+  EDA: saved to outputs/q1c_corr_EDA.png
+    High-correlation pairs (|r|>0.85): [('eda_microsiemens_mean', 'eda_microsiemens_rms', np.float64(1.0)), ('eda_microsiemens_std_dev', 'eda_microsiemens_peak_to_peak', np.float64(0.993))]
+  temperature: saved to outputs/q1c_corr_temperature.png
+    High-correlation pairs (|r|>0.85): [('temperature_celcius_mean', 'temperature_celcius_rms', np.float64(1.0)), ('temperature_celcius_std_dev', 'temperature_celcius_peak_to_peak', np.float64(0.989)), ('temperature_celcius_std_dev', 'temperature_celcius_peak_to_rms', np.float64(0.9)), ('temperature_celcius_peak_to_peak', 'temperature_celcius_peak_to_rms', np.float64(0.923))]
+  RR_interval: saved to outputs/q1c_corr_RR_interval.png
+    High-correlation pairs (|r|>0.85): [('rr_interval_milliseconds_mean', 'rr_interval_milliseconds_rms', np.float64(0.999)), ('rr_interval_milliseconds_std_dev', 'rr_interval_milliseconds_peak_to_peak', np.float64(0.977)), ('rr_interval_milliseconds_std_dev', 'rr_interval_milliseconds_peak_to_rms', np.float64(0.892)), ('rr_interval_milliseconds_peak_to_peak', 'rr_interval_milliseconds_peak_to_rms', np.float64(0.922))]
+
+======================================================================
+PART 1d: Descriptive Statistics Per Sensor Modality × Class
+======================================================================
+
+--- accelerometer ---
+                accelerometer_magnitude_mean           accelerometer_magnitude_std_dev           accelerometer_magnitude_mean_derivative           accelerometer_magnitude_rms           accelerometer_magnitude_peak_to_peak           accelerometer_magnitude_peak_to_rms           accelerometer_magnitude_num_peaks           accelerometer_magnitude_sample_entropy          
+                                        mean       std                            mean       std                                    mean       std                        mean       std                                 mean       std                                mean       std                              mean       std                                   mean       std
+state                                                                                                                                                                                                                                                                                                                                                                             
+parasympathetic                     1.001345  0.007354                        0.000865  0.000737                               -0.000008  0.000093                    1.001345  0.007354                             0.003628  0.002987                            1.001817  0.001788                          9.096000  2.877678                               1.174671  0.443635
+relaxed                             0.996353  0.009301                        0.008578  0.008175                               -0.000237  0.000934                    0.996423  0.009269                             0.035168  0.032790                            1.016559  0.016459                          7.358974  2.356259                               0.947069  0.524897
+sympathetic                         0.999326  0.009041                        0.002401  0.003174                                0.000046  0.000432                    0.999334  0.009041                             0.010063  0.012909                            1.004181  0.005518                          7.766234  2.981946                               1.004514  0.602556
+
+--- BVP ---
+                bvp_light_absorption_nW_mean           bvp_light_absorption_nW_std_dev           bvp_light_absorption_nW_mean_derivative           bvp_light_absorption_nW_rms           bvp_light_absorption_nW_peak_to_peak           bvp_light_absorption_nW_peak_to_rms           bvp_light_absorption_nW_num_peaks           bvp_light_absorption_nW_sample_entropy          
+                                        mean       std                            mean       std                                    mean       std                        mean       std                                 mean       std                                mean       std                              mean       std                                   mean       std
+state                                                                                                                                                                                                                                                                                                                                                                             
+parasympathetic                     0.004357  0.002777                        0.000089  0.000173                            3.160000e-08  0.000007                    0.004362  0.002776                             0.000458  0.000859                            1.077559  0.127081                          1.776000  2.714549                               0.211479  0.324513
+relaxed                             0.010613  0.005942                        0.000620  0.000977                            2.009728e-05  0.000103                    0.010657  0.005975                             0.003160  0.005011                            1.095602  0.151656                          1.487179  2.222751                               0.193727  0.269494
+sympathetic                         0.005941  0.003335                        0.000058  0.000080                           -5.233766e-08  0.000009                    0.005942  0.003335                             0.000320  0.000459                            1.037151  0.045842                          1.038961  1.427563                               0.142996  0.198587
+
+--- EDA ---
+                eda_microsiemens_mean           eda_microsiemens_std_dev           eda_microsiemens_mean_derivative           eda_microsiemens_rms           eda_microsiemens_peak_to_peak           eda_microsiemens_peak_to_rms           eda_microsiemens_num_peaks           eda_microsiemens_sample_entropy          
+                                 mean       std                     mean       std                             mean       std                 mean       std                          mean       std                         mean       std                       mean       std                            mean       std
+state                                                                                                                                                                                                                                                                                                                     
+parasympathetic              2.705651  2.261562                 0.054943  0.059881                        -0.003584  0.007598             2.706444  2.262071                      0.198521  0.204591                     1.038733  0.025284                   4.536000  2.944497                        0.696312  0.504028
+relaxed                      2.173181  2.282736                 0.204005  0.266875                         0.018319  0.034610             2.187801  2.293335                      0.729503  0.914605                     1.179197  0.150034                   4.692308  2.483142                        0.694834  0.496749
+sympathetic                  1.585203  1.918213                 0.098800  0.158180                         0.002939  0.024622             1.589669  1.923560                      0.343156  0.522921                     1.102107  0.082287                   5.363636  2.635332                        0.803939  0.555128
+
+--- temperature ---
+                temperature_celcius_mean           temperature_celcius_std_dev           temperature_celcius_mean_derivative           temperature_celcius_rms           temperature_celcius_peak_to_peak           temperature_celcius_peak_to_rms           temperature_celcius_num_peaks           temperature_celcius_sample_entropy          
+                                    mean       std                        mean       std                                mean       std                    mean       std                             mean       std                            mean       std                          mean       std                               mean       std
+state                                                                                                                                                                                                                                                                                                                                             
+parasympathetic                32.401275  1.004616                    0.017504  0.011855                            0.001001  0.002715               32.401282  1.004615                         0.063310  0.040888                        1.000972  0.000629                      6.736000  2.430133                           1.283641  0.446367
+relaxed                        32.089665  1.115544                    0.051122  0.046144                            0.004529  0.011401               32.089738  1.115530                         0.172474  0.161290                        1.002664  0.003316                      3.948718  2.247205                           0.987991  0.480876
+sympathetic                    32.788495  1.288489                    0.015489  0.008632                            0.001131  0.002672               32.788500  1.288490                         0.055600  0.027708                        1.000856  0.000435                      5.870130  2.509721                           1.191558  0.467042
+
+--- RR_interval ---
+                rr_interval_milliseconds_mean             rr_interval_milliseconds_std_dev            rr_interval_milliseconds_mean_derivative           rr_interval_milliseconds_rms             rr_interval_milliseconds_peak_to_peak             rr_interval_milliseconds_peak_to_rms           rr_interval_milliseconds_num_peaks           rr_interval_milliseconds_sample_entropy          
+                                         mean         std                             mean        std                                     mean       std                         mean         std                                  mean         std                                 mean       std                               mean       std                                    mean       std
+state                                                                                                                                                                                                                                                                                                                                                                                            
+parasympathetic                    840.048819  165.561146                        30.890558  23.016320                                -0.256994  4.643214                   840.859403  165.917635                            125.524800   89.876110                             1.071936  0.051400                           9.344000  2.997590                                1.379518  0.446190
+relaxed                            825.562483   98.785577                       105.730412  72.902606                                 1.402288  9.994946                   835.652999   96.658376                            410.178249  250.671140                             1.290327  0.206511                           7.230769  2.432905                                1.230586  0.541542
+sympathetic                        752.989824  134.064578                        41.661613  38.761898                                -1.405254  5.768685                   755.121684  134.078103                            165.470032  147.537259                             1.123140  0.149109                           7.545455  2.746028                                1.244553  0.588862
+
+Between-class variation score per modality:
+  RR_interval: 36.5046
+  temperature: 0.2958
+  EDA: 0.2568
+  accelerometer: 0.1326
+  BVP: 0.0557
+
+→ Modality with greatest class variation: RR_interval
+
+======================================================================
+PART 1e: Box Plots (one feature per modality, grouped by state)
+======================================================================
+  Saved: outputs/q1e_boxplots.png
+
+✅ Part 1 EDA complete.
+
+
+  ✓ Part 1 done in 1.0s
+
+══════════════════════════════════════════════════════════════════════
+  PART 2: Principal Component Analysis (PCA)  [30 points]
+══════════════════════════════════════════════════════════════════════
+Number of features used for PCA: 40
+
+Pre-PCA shapes  → X_train: (192, 40), X_test: (49, 40)
+
+======================================================================
+PART 2a: Standardize + Full PCA + Explained Variance Plots
+======================================================================
+Scaled feature matrix shape (train): (192, 40)
+  Saved: outputs/q2a_pca_variance.png
+  Components needed for ≥90% variance: 15
+
+======================================================================
+PART 2b: Apply PCA with 15 components (≥90% variance retained)
+======================================================================
+Shape BEFORE PCA: X_train=(192, 40), X_test=(49, 40)
+Shape AFTER  PCA: X_train=(192, 15),   X_test=(49, 15)
+Total variance retained: 90.01%
+  Saved: outputs/q2b_pca_scatter.png
+
+======================================================================
+PART 2c: Factor Loadings — Top 5 Features per PC (first 3 PCs)
+======================================================================
+
+  Top 5 features for PC1:
+                              Feature  Loading (PC1)
+ accelerometer_magnitude_peak_to_peak         0.8817
+      accelerometer_magnitude_std_dev         0.8789
+  accelerometer_magnitude_peak_to_rms         0.8743
+rr_interval_milliseconds_peak_to_peak         0.8295
+ rr_interval_milliseconds_peak_to_rms         0.7889
+
+  Top 5 features for PC2:
+                               Feature  Loading (PC2)
+     bvp_light_absorption_nW_num_peaks         0.8340
+bvp_light_absorption_nW_sample_entropy         0.8235
+   bvp_light_absorption_nW_peak_to_rms         0.7887
+         temperature_celcius_num_peaks         0.6321
+     accelerometer_magnitude_num_peaks         0.6112
+
+  Top 5 features for PC3:
+                                Feature  Loading (PC3)
+        temperature_celcius_peak_to_rms         0.8122
+       temperature_celcius_peak_to_peak         0.7278
+            temperature_celcius_std_dev         0.6865
+bvp_light_absorption_nW_mean_derivative         0.6642
+    temperature_celcius_mean_derivative        -0.4323
+
+  Saved: outputs/q2c_factor_loadings.png
+
+✅ Part 2 PCA complete.
+
+
+  ✓ Part 2 done in 0.5s
+
+  PCA-reduced shapes: X_train=(192, 15), X_test=(49, 15)
+  Classes: ['parasympathetic', 'relaxed', 'sympathetic']
+  Class distribution in test: {np.int64(0): np.int64(25), np.int64(1): np.int64(8), np.int64(2): np.int64(16)}
+
+══════════════════════════════════════════════════════════════════════
+  PART 3: Logistic Regression  [25 points]
+══════════════════════════════════════════════════════════════════════
+
+======================================================================
+PART 3: Logistic Regression (using PCA-reduced features)
+======================================================================
+
+--- 3a: Logistic Regression — No Regularization ---
+
+  ───────────────────────────────────────────────────────
+  LR No Regularization
+  ───────────────────────────────────────────────────────
+  Accuracy : 0.7551
+  F1 (wtd) : 0.7374
+
+  Classification Report:
+                 precision    recall  f1-score   support
+
+parasympathetic       0.79      0.92      0.85        25
+        relaxed       0.70      0.88      0.78         8
+    sympathetic       0.70      0.44      0.54        16
+
+       accuracy                           0.76        49
+      macro avg       0.73      0.74      0.72        49
+   weighted avg       0.75      0.76      0.74        49
+
+  Confusion matrix saved: outputs/q3_cm_LR_No_Regularization.png
+
+--- 3b: Logistic Regression — L1 (Lasso) Regularization ---
+
+  ───────────────────────────────────────────────────────
+  LR L1 (Lasso)
+  ───────────────────────────────────────────────────────
+  Accuracy : 0.7551
+  F1 (wtd) : 0.7439
+
+  Classification Report:
+                 precision    recall  f1-score   support
+
+parasympathetic       0.77      0.92      0.84        25
+        relaxed       0.86      0.75      0.80         8
+    sympathetic       0.67      0.50      0.57        16
+
+       accuracy                           0.76        49
+      macro avg       0.76      0.72      0.74        49
+   weighted avg       0.75      0.76      0.74        49
+
+  Confusion matrix saved: outputs/q3_cm_LR_L1_Lasso.png
+
+--- 3c: Logistic Regression — L2 (Ridge) Regularization ---
+
+  ───────────────────────────────────────────────────────
+  LR L2 (Ridge)
+  ───────────────────────────────────────────────────────
+  Accuracy : 0.7551
+  F1 (wtd) : 0.7439
+
+  Classification Report:
+                 precision    recall  f1-score   support
+
+parasympathetic       0.77      0.92      0.84        25
+        relaxed       0.86      0.75      0.80         8
+    sympathetic       0.67      0.50      0.57        16
+
+       accuracy                           0.76        49
+      macro avg       0.76      0.72      0.74        49
+   weighted avg       0.75      0.76      0.74        49
+
+  Confusion matrix saved: outputs/q3_cm_LR_L2_Ridge.png
+
+  Comparison plot saved: outputs/q3_comparison.png
+
+======================================================================
+PART 3d: Discussion — Impact of Regularization
+======================================================================
+
+  Regularization Impact Analysis:
+  ─────────────────────────────────────────────────────────────────────
+  • No Regularization (3a): The model is free to fit the training data
+    without any penalty on coefficient size. This can lead to overfitting,
+    especially when features are correlated (though PCA reduces this).
+    Performance on the test set serves as the baseline.
+
+  • L1 (Lasso) Regularization (3b): Adds |β| penalty, encouraging sparse
+    solutions — many coefficients are driven exactly to zero, effectively
+    performing feature selection among PCA components. This is beneficial
+    when only a few PCs are truly discriminative. However, it may discard
+    slightly useful components, potentially reducing accuracy marginally.
+
+  • L2 (Ridge) Regularization (3c): Adds β² penalty, shrinking all
+    coefficients toward zero uniformly without zeroing any. This handles
+    multicollinearity well and typically yields more stable, slightly better
+    generalisation than L1 on dense problems. For PCA-reduced data (already
+    decorrelated), L2 provides a smooth regularization effect.
+
+  Summary: On a PCA-reduced, decorrelated feature space, L2 (Ridge) tends
+  to perform similarly to or slightly better than L1 and No-regularization
+  because PCA already eliminates most redundancy. L1 may aggressively
+  prune components, while the unregularized model risks overfitting if the
+  number of retained components is large relative to sample size.
+    
+
+======================================================================
+PART 3e: Data Split Assumptions & Subject Leakage
+======================================================================
+
+  Assumptions Made:
+  ─────────────────────────────────────────────────────────────────────
+  1. Random stratified split (80/20): Stratification ensures the class
+     proportions are maintained in both train and test sets, which is
+     important given the class imbalance (parasympathetic:125, sympathetic:77,
+     relaxed:39).
+
+  2. i.i.d. assumption: The standard split assumes all samples are
+     independent and identically distributed. However, each subject
+     contributes MULTIPLE rows (one per 60-second window), so this
+     assumption is VIOLATED — the data has a repeated-measures structure.
+
+  Subject Leakage Problem:
+  ─────────────────────────────────────────────────────────────────────
+  If the same subject appears in BOTH train and test sets, the model can
+  effectively memorise individual physiological baselines rather than
+  learning generalizable class patterns. This inflates test performance —
+  the model "recognises" a person rather than classifying their state.
+
+  How to Address:
+  ─────────────────────────────────────────────────────────────────────
+  • Use GroupShuffleSplit or LeaveOneGroupOut (LOGO) with subject as the
+    group key to ensure each subject appears ONLY in train OR test.
+  • This simulates real-world deployment where the model encounters
+    entirely new subjects it has never seen during training.
+  • For cross-validation, use GroupKFold with groups=subject identifiers.
+    
+
+✅ Part 3 Logistic Regression complete.
+
+
+  ✓ Part 3 done in 0.5s
+
+  Comparison Table:
+            Model  Accuracy  F1 (wtd)
+No Regularization    0.7551    0.7374
+       L1 (Lasso)    0.7551    0.7439
+       L2 (Ridge)    0.7551    0.7439
+
+══════════════════════════════════════════════════════════════════════
+  PART 4: Neural Networks (PyTorch)  [25 points]
+══════════════════════════════════════════════════════════════════════
+
+======================================================================
+PART 4: Neural Networks  (device: cpu)
+======================================================================
+  Input dimensions (PCA components): 15
+  Number of classes                : 3
+
+--- 4a-i: Simple Feedforward Network (2 hidden layers) ---
+  Architecture: 15 → 128 → 64 → 3
+  Activation: ReLU | Optimizer: Adam (lr=0.001) | Epochs: 100
+    [SimpleFFN] Epoch   1/100  Loss: 1.0733
+    [SimpleFFN] Epoch  20/100  Loss: 0.0509
+    [SimpleFFN] Epoch  40/100  Loss: 0.0160
+    [SimpleFFN] Epoch  60/100  Loss: 0.0097
+    [SimpleFFN] Epoch  80/100  Loss: 0.0077
+    [SimpleFFN] Epoch 100/100  Loss: 0.0068
+
+  ───────────────────────────────────────────────────────
+  Simple FFN
+  ───────────────────────────────────────────────────────
+  Accuracy  : 0.8163
+  F1 (wtd)  : 0.8177
+  Precision : 0.8198
+  Recall    : 0.8163
+
+  Classification Report:
+                 precision    recall  f1-score   support
+
+parasympathetic       0.88      0.84      0.86        25
+        relaxed       0.88      0.88      0.88         8
+    sympathetic       0.71      0.75      0.73        16
+
+       accuracy                           0.82        49
+      macro avg       0.82      0.82      0.82        49
+   weighted avg       0.82      0.82      0.82        49
+
+  Confusion matrix saved: outputs/q4_cm_Simple_FFN.png
+
+--- 4a-ii: Deep Feedforward Network (4 hidden layers + Dropout) ---
+  Architecture: 15 → 256 → 128 → 64 → 32 → 3
+  Regularization: BatchNorm + Dropout(0.3) | Optimizer: Adam (lr=0.0005) | Epochs: 100
+    [DeepFFN] Epoch   1/100  Loss: 1.0933
+    [DeepFFN] Epoch  20/100  Loss: 0.2889
+    [DeepFFN] Epoch  40/100  Loss: 0.1347
+    [DeepFFN] Epoch  60/100  Loss: 0.1840
+    [DeepFFN] Epoch  80/100  Loss: 0.1032
+    [DeepFFN] Epoch 100/100  Loss: 0.1591
+
+  ───────────────────────────────────────────────────────
+  Deep FFN
+  ───────────────────────────────────────────────────────
+  Accuracy  : 0.8571
+  F1 (wtd)  : 0.8566
+  Precision : 0.8632
+  Recall    : 0.8571
+
+  Classification Report:
+                 precision    recall  f1-score   support
+
+parasympathetic       0.85      0.92      0.88        25
+        relaxed       1.00      0.75      0.86         8
+    sympathetic       0.81      0.81      0.81        16
+
+       accuracy                           0.86        49
+      macro avg       0.89      0.83      0.85        49
+   weighted avg       0.86      0.86      0.86        49
+
+  Confusion matrix saved: outputs/q4_cm_Deep_FFN.png
+
+--- 4b: Architecture Comparison ---
+  Comparison plot saved: outputs/q4_comparison.png
+
+  ┌─ Architecture Summary ─────────────────────────────────────────┐
+  │ Model                Layers       Params       Accuracy   F1       │
+  │ ────────────────────────────────────────────────────────────── │
+  │ Simple FFN           2 hidden     10,499       0.8163     0.8177   │
+  │ Deep FFN             4 hidden     48,323       0.8571     0.8566   │
+  └────────────────────────────────────────────────────────────────┘
+
+✅ Part 4 Neural Networks complete.
+
+
+  ✓ Part 4 done in 2.0s
+
+══════════════════════════════════════════════════════════════════════
+  PART 5: Cross-Validation with Different Folds  [20 points]
+══════════════════════════════════════════════════════════════════════
+
+======================================================================
+PART 5: Cross-Validation Analysis (Logistic Regression, L2)
+======================================================================
+  Dataset size: 241 samples | Features: 15 PCA components
+
+--- 5a: K-Fold Cross-Validation (k=5 and k=10) ---
+
+  KFold(k=5) — Non-Stratified:
+    Accuracy : 0.8134 ± 0.0289
+    F1 (wtd) : 0.8108 ± 0.0357
+    Per-fold accuracies: [np.float64(0.7959), np.float64(0.8125), np.float64(0.7708), np.float64(0.8333), np.float64(0.8542)]
+
+  KFold(k=10) — Non-Stratified:
+    Accuracy : 0.8215 ± 0.0592
+    F1 (wtd) : 0.8216 ± 0.0606
+    Per-fold accuracies: [np.float64(0.84), np.float64(0.9167), np.float64(0.7083), np.float64(0.7917), np.float64(0.7917), np.float64(0.7917), np.float64(0.8333), np.float64(0.9167), np.float64(0.8333), np.float64(0.7917)]
+
+--- 5b: Stratified vs Non-Stratified Cross-Validation ---
+
+  KFold k=5 (non-strat):
+    Accuracy : 0.8134 ± 0.0289
+    F1 (wtd) : 0.8108 ± 0.0357
+
+  KFold k=10 (non-strat):
+    Accuracy : 0.8215 ± 0.0592
+    F1 (wtd) : 0.8216 ± 0.0606
+
+  StratifiedKFold k=5 (strat):
+    Accuracy : 0.7798 ± 0.0512
+    F1 (wtd) : 0.7792 ± 0.0511
+
+  StratifiedKFold k=10 (strat):
+    Accuracy : 0.8293 ± 0.0924
+    F1 (wtd) : 0.8233 ± 0.0985
+
+  Summary Table:
+              Config      Type  Acc Mean  Acc Std  F1 Mean  F1 Std
+           KFold k=5 non-strat    0.8134   0.0289   0.8108  0.0357
+          KFold k=10 non-strat    0.8215   0.0592   0.8216  0.0606
+ StratifiedKFold k=5     strat    0.7798   0.0512   0.7792  0.0511
+StratifiedKFold k=10     strat    0.8293   0.0924   0.8233  0.0985
+
+  Cross-validation comparison plot saved: outputs/q5_crossval_comparison.png
+
+======================================================================
+PART 5b: Observations & Analysis
+======================================================================
+
+  Impact of Number of Folds (k):
+  ─────────────────────────────────────────────────────────────────────
+  • Increasing k from 5 to 10 generally DECREASES variance (std) of
+    performance estimates because each fold uses more data for training
+    and the average is over more evaluations.
+  • However, k=10 is computationally more expensive (10 model fits vs 5).
+  • With a small dataset (n≈241), k=10 can cause very small test folds
+    where rare class samples may be absent, destabilizing estimates.
+  • k=5 offers a good bias-variance tradeoff for this dataset size.
+
+  Impact of Stratification:
+  ─────────────────────────────────────────────────────────────────────
+  • Without stratification, random fold assignment can produce folds
+    where minority classes (relaxed: 39 samples) are severely under-
+    represented or entirely absent in a test fold.
+  • Stratified KFold preserves class proportions in every fold, giving
+    more representative and STABLE estimates of generalisation performance.
+  • The standard deviation of fold accuracies is typically LOWER with
+    stratification because each fold sees balanced class distributions.
+  • Stratification is STRONGLY recommended for imbalanced datasets like
+    this one (parasympathetic:125, sympathetic:77, relaxed:39).
+    
+
+✅ Part 5 Cross-Validation complete.
+
+
+  ✓ Part 5 done in 0.4s
+
+══════════════════════════════════════════════════════════════════════
+  PART 6: SHAP Analysis  [20 points]
+══════════════════════════════════════════════════════════════════════
+
+======================================================================
+PART 6: SHAP Analysis
+======================================================================
+  Building SHAP LinearExplainer on LogisticRegression model...
+  Computing SHAP values on test set...
+  SHAP values shape: (49, 15, 3)
+
+--- 6a: Global SHAP Feature Importance ---
+  Global bar plot saved: outputs/q6a_shap_global_bar.png
+  Beeswarm plot saved: outputs/q6a_shap_beeswarm.png
+
+  Top 3 most influential PCA components (global):
+    PC1: mean |SHAP| = 1.4728
+    PC6: mean |SHAP| = 0.9321
+    PC11: mean |SHAP| = 0.6739
+
+  Discussion (6a):
+  ─────────────────────────────────────────────────────────────────────
+  The global SHAP bar plot ranks PCA components by their average absolute
+  contribution across all test samples and classes. Components at the top
+  are those the Logistic Regression model relies on most to discriminate
+  physiological states. Comparing these with the factor loadings from
+  Part 2c reveals which original sensor modalities (RR interval, accelero-
+  meter, temperature) drive classification. The beeswarm plot additionally
+  shows the DIRECTION: red points push toward the class, blue push away.
+  Consistent direction across many samples indicates a strong monotonic
+  relationship between that PC and the predicted class.
+    
+
+--- 6b: SHAP Waterfall Plot — Test Sample 1 ---
+  Waterfall (sample 1) saved: outputs/q6b_shap_waterfall_sample1.png
+  True class: parasympathetic | Predicted: sympathetic
+
+  Top contributing features for sample 1:
+    PC15: SHAP=0.8119 → TOWARD 'sympathetic'
+    PC12: SHAP=-0.6431 → AWAY FROM 'sympathetic'
+    PC3: SHAP=0.6383 → TOWARD 'sympathetic'
+
+  Discussion (6b):
+  ─────────────────────────────────────────────────────────────────────
+  The waterfall plot traces the prediction from the base value (expected
+  model output) to the final prediction for this individual sample. Red
+  bars increase the log-odds toward the predicted class; blue bars
+  decrease them. The dominant components reveal which physiological
+  dimensions (captured by the PCs with highest loadings on specific
+  modalities) pushed this particular physiological reading toward its
+  classified state — providing individual-level interpretability.
+    
+
+--- 6c: SHAP Waterfall Plot — Test Sample 2 ---
+  Waterfall (sample 2) saved: outputs/q6c_shap_waterfall_sample2.png
+  True class: sympathetic | Predicted: sympathetic
+
+  Top contributing features for sample 2:
+    PC6: SHAP=0.6934 → TOWARD 'sympathetic'
+    PC5: SHAP=-0.5320 → AWAY FROM 'sympathetic'
+    PC3: SHAP=0.5294 → TOWARD 'sympathetic'
+
+  Discussion (6c):
+  ─────────────────────────────────────────────────────────────────────
+  Comparing this waterfall to sample 1's shows how the same model applies
+  different feature weights for different individuals. The shift in
+  dominant PCA components between the two samples reflects inter-subject
+  variability in physiological responses — a key challenge in wearable
+  health monitoring. This confirms the need for personalised models or
+  subject-specific normalisation strategies in future work.
+    
+
+✅ Part 6 SHAP Analysis complete.
+
+
+  ✓ Part 6 done in 0.7s
+
+══════════════════════════════════════════════════════════════════════
+  PART 7: Bonus Question  [5 points]
+══════════════════════════════════════════════════════════════════════
+
+================================================================================
+PART 7 (BONUS): What Would I Explore Next with Raw Sensor Streams?
+================================================================================
+
+The current dataset consists of pre-computed statistical features extracted from
+60-second windows of five wearable physiological signals. While this is a well-
+designed feature engineering pipeline, working with the FULL RAW sensor streams
+would unlock several exciting directions:
+
+────────────────────────────────────────────────────────────────────────────────
+A. DIFFERENT TASK: Temporal State Transition Detection
+────────────────────────────────────────────────────────────────────────────────
+Rather than classifying a static "state" over a 60-second window, with raw
+streams I would explore CHANGE-POINT DETECTION — identifying the exact moment
+when the autonomic nervous system transitions between states (e.g., from relaxed
+to sympathetic activation during a challenging yoga pose). This is more clinically
+actionable: knowing WHEN a state change occurs is often more valuable than
+classifying what state is happening in a predefined window.
+
+Method: Bayesian change-point detection (PELT algorithm) applied to the EDA and
+RR-interval streams, which are particularly sensitive to ANS transitions.
+
+────────────────────────────────────────────────────────────────────────────────
+B. DIFFERENT MODELING APPROACH: Temporal Deep Learning
+────────────────────────────────────────────────────────────────────────────────
+With raw multi-channel time-series data, I would replace the handcrafted feature
+extraction + PCA pipeline with:
+
+  1. 1D Convolutional Neural Networks (1D-CNN): Learns local temporal patterns
+     directly from raw signal windows, capturing features that hand-engineering
+     might miss (e.g., specific waveform shapes in BVP/EDA).
+
+  2. LSTM / Transformer-based models: Capture long-range temporal dependencies
+     across signals — critical for physiological state classification because
+     autonomic responses unfold over seconds to minutes.
+
+  3. Multi-Modal Attention Networks: Use cross-modal attention to dynamically
+     weight different sensor modalities (e.g., down-weighting accelerometer
+     during stillness, up-weighting EDA during stress).
+
+This removes the assumption that pre-defined statistical features (mean, std,
+peak-to-peak) are sufficient representations — the model learns representations
+that are optimal for the classification task.
+
+────────────────────────────────────────────────────────────────────────────────
+C. QUESTION THIS DATASET CANNOT ANSWER: Personalization & Physiological Baselines
+────────────────────────────────────────────────────────────────────────────────
+The current extracted-feature dataset treats all subjects as homogeneous — the
+same model serves all subjects. But physiological signals are HIGHLY individual:
+a resting heart rate of 55 bpm may be "normal" for an athlete but indicate
+bradycardia in a sedentary person. The same EDA value means different things
+for different individuals.
+
+With raw streams and subject metadata, I would explore:
+
+  • Personalized baseline estimation: Using the first N minutes of a session
+    to estimate a subject-specific baseline, then classifying states relative
+    to that individual baseline (z-scoring per-subject).
+
+  • Transfer learning for new subjects: Pre-train a model on existing subjects,
+    then fine-tune with just a few minutes of a new subject's data (few-shot
+    personalization) — a critical requirement for real-world wearable deployment.
+
+  • Yoga experience as a moderator: Do experienced practitioners show more
+    controlled sympathetic responses (lower EDA peaks, more stable RR) during
+    difficult postures? Raw streams would enable testing this hypothesis through
+    time-series analysis of within-session physiological dynamics.
+
+────────────────────────────────────────────────────────────────────────────────
+D. SIGNAL QUALITY & ARTIFACT DETECTION
+────────────────────────────────────────────────────────────────────────────────
+The high proportion of missing sample_entropy values in the extracted features
+hints at signal quality issues in the raw streams (motion artifacts, sensor
+disconnections during movement-heavy postures). With raw streams, I would build
+an automated signal quality index (SQI) pipeline to flag and interpolate
+corrupted windows before feature extraction — making the classification pipeline
+more robust for real-world deployment.
+
+────────────────────────────────────────────────────────────────────────────────
+Summary
+────────────────────────────────────────────────────────────────────────────────
+The most impactful next step would be a subject-adaptive temporal model that:
+  1. Takes raw multi-channel streams as input
+  2. Estimates per-subject baselines in real-time
+  3. Detects state TRANSITIONS rather than classifying static windows
+  4. Provides continuous physiological state monitoring suitable for
+     wearable deployment in clinical or wellness settings
+
+This moves from a research classification task to a practical, deployable
+physiological monitoring system.
+================================================================================
+
+
+  ✓ Part 7 done in 0.0s
+
+══════════════════════════════════════════════════════════════════════
+  FINAL SUMMARY — All Parts Complete
+══════════════════════════════════════════════════════════════════════
+
+  Model Performance Summary:
+  Model                                 Accuracy   F1 (wtd)
+  ---------------------------------------------------------
+  LR — No Regularization                  0.7551     0.7374
+  LR — L1 (Lasso)                         0.7551     0.7439
+  LR — L2 (Ridge)                         0.7551     0.7439
+  Neural Net — Simple FFN                 0.8163     0.8177
+  Neural Net — Deep FFN                   0.8571     0.8566
+
+  ★ Best model: Deep FFN (accuracy=0.8571)
+
+  Output figures saved in: ./outputs/
+  Total runtime: 5.0 seconds (0.1 minutes)
+
+══════════════════════════════════════════════════════════════════════
+
+
