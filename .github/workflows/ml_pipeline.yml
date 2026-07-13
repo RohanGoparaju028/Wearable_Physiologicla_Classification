@@ -1,0 +1,51 @@
+name: ML Pipeline CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff pytest
+        pip install -r requirments.txt
+
+    - name: Lint with Ruff
+      run: |
+        # Stop build if there are Python syntax errors or undefined names
+        ruff check --select=E9,F63,F7,F82 --show-source .
+        # Style checks warning
+        ruff check --exit-zero .
+
+    - name: Run Pipeline (Integration & Artifact Generation)
+      run: |
+        python main.py
+
+    - name: Upload Plot Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pipeline-plots
+        path: outputs/
+        retention-days: 7
+
+    - name: Generate Job Summary
+      run: |
+        echo "## 📊 ML Pipeline Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "The pipeline ran successfully. Below is the summary of results:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        cat outputs/run_log.txt | grep -A 10 "FINAL SUMMARY" >> $GITHUB_STEP_SUMMARY
